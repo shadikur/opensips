@@ -219,9 +219,9 @@ sed -i "s/$config->db_pass = .*/$config->db_pass = \"$MySQLPass\";/g" /var/www/h
 verbose "Installation has been completed"
 ip=$(hostname -I | awk '{print $1}')
 verbose "Please visit http://$ip/opensips-cp/web/ and start configuring your opensips"
-warning "Default username: admin & password: opensips, Please change it immediately.\n\n"
+warning "Default username: admin & password: opensips, Please change it immediately."
 verbose "Please keep this information in your record for further configuration"
 verbose "MySQL ROOT Password: $MySQLPass"
 verbose	"OpenSIP DB Name: opensips, DB Username: opensips & DB Password: $MySQLPass"
-verbose "Monit Username: admin and Password: $MonitPass\n\n"
+verbose "Monit Username: admin and Password: $MonitPass"
 error "If you face any issue on deployment or in configuration, please feel free to contact to jbansal@guidepoint.com or mrahman@guidepoint.com. Thank you.\n\n"
