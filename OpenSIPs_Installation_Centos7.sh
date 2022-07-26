@@ -192,7 +192,7 @@ verbose "Cloning OpenSIPs GUI interface"
 #Clone GUI files to /var/www/html/ (default Apache directory)
 git clone https://github.com/OpenSIPS/opensips-cp.git /var/www/html/opensips-cp
 #Change ownership & permissions
-chown -R www-data:www-data /var/www/html/opensips-cp/
+chown -R apache:apache /var/www/html/opensips-cp
 cd /var/www/html/opensips-cp/
 #Copy the cron file to cron.d
 cp config/tools/system/smonitor/opensips_stats_cron /etc/cron.d/opensips_stats_cron
@@ -224,4 +224,4 @@ verbose "Please keep this information in your record for further configuration"
 verbose "MySQL ROOT Password: $MySQLPass"
 verbose	"OpenSIP DB Name: opensips, DB Username: opensips & DB Password: $MySQLPass"
 verbose "Monit Username: admin and Password: $MonitPass"
-error "If you face any issue on deployment or in configuration, please feel free to contact to jbansal@guidepoint.com or mrahman@guidepoint.com. Thank you.\n\n"
+error "If you face any issue on deployment or in configuration, please feel free to contact to jbansal@guidepoint.com or mrahman@guidepoint.com. Thank you."
