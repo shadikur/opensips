@@ -50,6 +50,19 @@ sleep 3
 yum groupinstall core base "Development Tools" -y
 yum install wget curl git nano vim -y
 
+#install gcc 4.9.2
+verbose "Install gcc 4.9.2"
+sleep 3
+yum install gcc-c++ make -y
+wget http://ftp.gnu.org/gnu/gcc/gcc-4.9.2/gcc-4.9.2.tar.gz
+tar -xzf gcc-4.9.2.tar.gz
+cd gcc-4.9.2
+./contrib/download_prerequisites
+./configure --enable-shared --disable-multilib --enable-threads=posix --enable-languages=c,c++ --with-system-zlib --enable-libstdcxx-time=yes --enable-stage1-checking --enable-checking=release --enable-lto --enable-plugin --enable-install-libraries=yes --with-gxx-include-dir=/usr/include/c++/4.9.2
+make -j4
+make install
+
+
 #SNMP
 verbose "Install SNMP"
 sleep 3
@@ -97,7 +110,7 @@ git clone -b master https://github.com/sippy/rtpproxy.git
 git -c rtpproxy submodule update --init --recursive
 cd rtpproxy
 ./configure
-make clean all
+make clean alls
 make install
 
 warning "Adding OpenSIP RTPProxy as a service"
