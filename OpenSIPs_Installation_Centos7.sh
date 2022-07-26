@@ -94,7 +94,7 @@ sleep 2
 useradd rtpproxy
 cd /usr/src
 git clone -b master https://github.com/sippy/rtpproxy.git
-git -C rtpproxy submodule update --init --recursive
+git -c rtpproxy submodule update --init --recursive
 cd rtpproxy
 ./configure
 make clean all
@@ -166,15 +166,6 @@ mysql -u root -p$MySQLPass -e "UPDATE mysql.user SET Password=PASSWORD('$MySQLPa
 mysql -u root -p$MySQLPass -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', 'localhost.localdomain');"
 mysql -u root -p$MySQLPass -e "DELETE FROM mysql.user WHERE User='';"
 mysql -u root -p$MySQLPass -e "FLUSH PRIVILEGES;"
-mysql -u root -p$MySQLPass -e "CREATE USER 'opensips'@'localhost' IDENTIFIED BY '$MySQLPass';"
-mysql -u root -p$MySQLPass -e "GRANT ALL PRIVILEGES ON *.* TO 'opensips'@'localhost' WITH GRANT OPTION;"
-mysql -u root -p$MySQLPass -e "CREATE USER 'opensips'@'%' IDENTIFIED BY '$MySQLPass';"
-mysql -u root -p$MySQLPass -e "GRANT ALL PRIVILEGES ON *.* TO 'opensips'@'%' WITH GRANT OPTION;"
-mysql -u root -p$MySQLPass -e "FLUSH PRIVILEGES;"
-mysql -u root -p$MySQLPass -e "CREATE DATABASE opensips DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
-mysql -u root -p$MySQLPass -e "GRANT ALL PRIVILEGES ON opensips.* TO 'opensips'@'localhost' IDENTIFIED BY '$MySQLPass';"
-mysql -u root -p$MySQLPass -e "GRANT ALL PRIVILEGES ON opensips.* TO 'opensips'@'%' IDENTIFIED BY '$MySQLPass';"
-mysql -u root -p$MySQLPass -e "FLUSH PRIVILEGES;"
 
 sleep 2
 
@@ -214,7 +205,6 @@ database_modules=ALL
 database_force_drop=true
 EOF
 opensips-cli -x database create
-mysql -p$DBPASS -Dopensips < config/db_schema.mysql
 sed -i "s/$config->db_pass = .*/$config->db_pass = \"$MySQLPass\";/g" /var/www/html/opensips-cp/config/db.inc.php
 verbose "Installation has been completed"
 ip=$(hostname -I | awk '{print $1}')
