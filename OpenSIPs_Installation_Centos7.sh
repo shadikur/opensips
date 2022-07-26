@@ -189,11 +189,18 @@ sed 's#;max_input_vars = .*#max_input_vars = 8000#g' -i /etc/php.ini
 
 
 verbose "Cloning OpenSIPs GUI interface"
-git -C /var/www/html/ clone https://github.com/OpenSIPS/opensips-cp.git
+#Clone GUI files to /var/www/html/ (default Apache directory)
+git clone https://github.com/OpenSIPS/opensips-cp.git /var/www/html/opensips-cp
+#Change ownership & permissions
 chown -R www-data:www-data /var/www/html/opensips-cp/
 cd /var/www/html/opensips-cp/
-cp config/tools/system/smonitor/opensips_stats_cron /etc/cron.d/
-systemctl restart cron
+#Copy the cron file to cron.d
+cp config/tools/system/smonitor/opensips_stats_cron /etc/cron.d/opensips_stats_cron
+#Change ownership & permissions
+chown root:root /etc/cron.d/opensips_stats_cron
+chmod 0644 /etc/cron.d/opensips_stats_cron
+#Restart crond
+systemctl restart crond.service
 
 #OpenSIPs CLI configuration
 verbose "Configuring OpenSIPs CLI"
