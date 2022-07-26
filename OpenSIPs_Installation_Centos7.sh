@@ -1,9 +1,11 @@
 #!/bin/sh
 
 #Script Name: Complete OpenSIPs installation including GUI management
-#OS Requirement: CentOS 7 - Buster x64
-#Note: Please use minimal OS to use this script, otherwise, there might be port/pid conflict.
-#This is custom development project by Jasdeep Bansal & Mohammad Rahman
+#Description: This script will install OpenSIPs on a CentOS 7 server. This script will install all the necessary packages and will configure the server to run OpenSIPs Telephony Server. Once the script is executed, the server will be ready to run OpenSIPs Telephony Server and can be used as a SBC for Microsoft Teams.
+#Author: Mohammad Rahman (Acknowledged by Jasdeep Bansal)
+#OS Requirement: CentOS 7 - x86_64
+#Note: Please use minimal OS to use this script, otherwise, there might be service/port/pid conflict.
+#This is custom development project by Jasdeep Bansal & Mohammad Rahman for Microsoft Teams SBC.
 
 
 #Color selection
@@ -38,7 +40,8 @@ sleep 3
 yum update -y && yum upgrade -y
 #Install epel-release and update
 verbose "Install epel-release and update"
-sleep 3
+sleep 2
+yum install epel-release -y && yum update -y
 
 
 #Add dependencies
@@ -55,7 +58,7 @@ echo "rocommunity public" > /etc/snmp/snmpd.conf
 systemctl enable snmpd.service
 systemctl start snmpd.service
 
-#install monit
+#install monit for checking system status
 verbose "Install monitoring tools"
 sleep 3
 yum install monit -y
@@ -68,7 +71,7 @@ sleep 2
 MonitPass=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
 warning "Changing monit password to $MonitPass"
 sleep 2
-cat <<EOF >> /etc/monit/monitrc
+cat <<EOF >> /etc/monitrc
 set httpd port 2812 and
 #     use address localhost  # only accept connection from localhost (drop if you use M/Monit)
 #     allow localhost        # allow localhost to connect to the server and
@@ -76,17 +79,14 @@ set httpd port 2812 and
 EOF
 
 
-#Install OpenSIPs & OpenSIPs-GUI
-verbose "Adding OpenSIPs stable LTS repository"
+#Install OpenSIPs & OpenSIPs-CLI
+verbose "Install OpenSIPs & OpenSIPs-CLI"
 sleep 3
-yum install https://download.opensips.org/repos/RHEL/7/x86_64/opensips-stable-RHEL-7.repo -y
-verbose "Installing OpenSIPs"
-sleep 3
-yum install opensips -y
-
 warning "Starting installation..."
-sleep 3
-
+yum install https://yum.opensips.org/3.2/releases/el/7/x86_64/opensips-yum-releases-3.2-6.el7.noarch.rpm -y
+yum install opensips opensips-cli -y
+syytemctl enable opensips.service
+systemctl start opensips.service
 
 #Install OpenSIPs RTPProxy Engine
 verbose "Installing OpenSIPs RTPProxy Engine"
