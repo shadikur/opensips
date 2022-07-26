@@ -36,28 +36,35 @@ fi
 verbose "Update installed packages"
 sleep 3
 yum update -y && yum upgrade -y
+#Install epel-release and update
+verbose "Install epel-release and update"
+sleep 3
+
 
 #Add dependencies
 verbose "Add dependencies to prepare the environment"
 sleep 3
 yum groupinstall core base "Development Tools" -y
-yum install wget curl git nano vim 
+yum install wget curl git nano vim -y
 
 #SNMP
-apt-get install -y snmpd
+verbose "Install SNMP"
+sleep 3
+yum install net-snmp-libs net-snmp-utils net-snmp-libs-devel net-snmp-devel -y
 echo "rocommunity public" > /etc/snmp/snmpd.conf
-service snmpd restart
+systemctl enable snmpd.service
+systemctl start snmpd.service
 
 #install monit
 verbose "Install monitoring tools"
 sleep 3
-printf "%s\n" "deb http://ftp.de.debian.org/debian buster-backports main" | \
-sudo tee /etc/apt/sources.list.d/buster-backports.list
-sudo apt update
-sudo apt install -t buster-backports monit
-sudo systemctl start monit
-sudo systemctl status monit
+yum install monit -y
+systemctl enable monit.service
+systemctl start monit.service
 
+#Monit Password Update
+verbose "Update monit password"
+sleep 2
 MonitPass=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
 warning "Changing monit password to $MonitPass"
 sleep 2
@@ -69,109 +76,61 @@ set httpd port 2812 and
 EOF
 
 
-#Install OpenSIPs
+#Install OpenSIPs & OpenSIPs-GUI
 verbose "Adding OpenSIPs stable LTS repository"
-curl https://apt.opensips.org/pubkey.gpg | apt-key add -
-echo "deb https://apt.opensips.org buster 3.2-releases" >/etc/apt/sources.list.d/opensips.list
-echo "deb https://apt.opensips.org buster cli-nightly" >/etc/apt/sources.list.d/opensips-cli.list
-apt update
+sleep 3
+yum install https://download.opensips.org/repos/RHEL/7/x86_64/opensips-stable-RHEL-7.repo -y
+verbose "Installing OpenSIPs"
+sleep 3
+yum install opensips -y
 
 warning "Starting installation..."
 sleep 3
-apt install -y opensips* opensips-cli
-systemctl start opensips
+
 
 #Install OpenSIPs RTPProxy Engine
 verbose "Installing OpenSIPs RTPProxy Engine"
-sleep 2
-useradd rtpproxy
-cd /usr/src
-git clone -b master https://github.com/sippy/rtpproxy.git
-git -C rtpproxy submodule update --init --recursive
-cd rtpproxy
-./configure
-make clean all
-make install
+sleep 3
+yum install opensips-rtpproxy -y
+systemctl enable opensips-rtpproxy.service
+systemctl start opensips-rtpproxy.service
 
-warning "Adding OpenSIP RTPProxy as a service"
-cat <<EOF > /lib/systemd/system/rtpproxy.service
-[Unit]
-Description=RTPProxy media server
-After=network.target
-Requires=network.target
-
-[Service]
-Type=simple
-PIDFile=/var/run/rtpproxy/rtpproxy.pid
-Environment='OPTIONS= -f -L 4096 -l 0.0.0.0 -m 10000 -M 20000 -d INFO:LOG_LOCAL5'
-
-Restart=always
-RestartSec=5
-
-ExecStartPre=-/bin/mkdir /var/run/rtpproxy
-ExecStartPre=-/bin/chown rtpproxy:rtpproxy /var/run/rtpproxy
-
-ExecStart=/usr/local/bin/rtpproxy -p /var/run/rtpproxy/rtpproxy.pid -s udp:127.0.0.1:22222 \
- -u rtpproxy:rtpproxy -n udp:127.0.0.1:22223 $OPTIONS
-
-ExecStop=/usr/bin/pkill -F /var/run/rtpproxy/rtpproxy.pid
-
-ExecStopPost=-/bin/rm -R /var/run/rtpproxy
-
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=rtpproxy
-SyslogFacility=local5
-
-TimeoutStartSec=10
-TimeoutStopSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-chmod +x /lib/systemd/system/rtpproxy.service 
-systemctl enable rtpproxy.service
-systemctl start rtpproxy.service
 
 #MySQL Server & PHP Installation 
-verbose "MySQL Server & PHP Installation"
+verbose "Installing MySQL Server & PHP"
 sleep 3
-cd /tmp
-apt update -y && apt -y upgrade
-apt install apache2 expect mariadb-server -y && apt-get install php php-mysql php-gd php-pear php-cli php-apcu libapache2-mod-php php-curl -y
-systemctl start apache2
+#install PHP 7.3
+yum install php73u php73u-mysqlnd php73u-xml php73u-json php73u-mbstring php73u-gd php73u-intl php73u-opcache php73u-devel php73u-pear php73u-pecl-apcu php73u-pecl-imagick php73u-pecl-memcached php73u-pecl-redis php73u-pecl-xdebug php73u-pecl-yaml php73u-pecl-zip php73u-pecl-geoip php73u-pecl-geoip-devel -y
+#install MySQL Server
+yum install mysql-server -y
+systemctl enable mysqld.service
+systemctl start mysqld.service
+
+#Update MySQL password
+verbose "Update MySQL password"
+sleep 3
+MySQLPass=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
+warning "Changing MySQL password to $MySQLPass"
+sleep 2
+mysqladmin -u root password $MySQLPass
+mysql -u root -p$MySQLPass -e "UPDATE mysql.user SET Password=PASSWORD('$MySQLPass') WHERE User='root';"
+mysql -u root -p$MySQLPass -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', 'localhost.localdomain');"
+mysql -u root -p$MySQLPass -e "DELETE FROM mysql.user WHERE User='';"
+mysql -u root -p$MySQLPass -e "FLUSH PRIVILEGES;"
+mysql -u root -p$MySQLPass -e "CREATE USER 'opensips'@'localhost' IDENTIFIED BY '$MySQLPass';"
+mysql -u root -p$MySQLPass -e "GRANT ALL PRIVILEGES ON *.* TO 'opensips'@'localhost' WITH GRANT OPTION;"
+mysql -u root -p$MySQLPass -e "CREATE USER 'opensips'@'%' IDENTIFIED BY '$MySQLPass';"
+mysql -u root -p$MySQLPass -e "GRANT ALL PRIVILEGES ON *.* TO 'opensips'@'%' WITH GRANT OPTION;"
+mysql -u root -p$MySQLPass -e "FLUSH PRIVILEGES;"
+mysql -u root -p$MySQLPass -e "CREATE DATABASE opensips DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
+mysql -u root -p$MySQLPass -e "GRANT ALL PRIVILEGES ON opensips.* TO 'opensips'@'localhost' IDENTIFIED BY '$MySQLPass';"
+mysql -u root -p$MySQLPass -e "GRANT ALL PRIVILEGES ON opensips.* TO 'opensips'@'%' IDENTIFIED BY '$MySQLPass';"
+mysql -u root -p$MySQLPass -e "FLUSH PRIVILEGES;"
 
 warning "Securing mysql sever..."
 sleep 2
 
-systemctl start mysql
-DBPASS=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
-SECURE_MYSQL=$(expect -c "
-set timeout 10
-spawn mysql_secure_installation
-expect \"Enter current password for root (enter for none):\"
-send \"$MYSQL\r\"
-expect \"Change the root password?\"
-send \"y\r\"
-expect \"New password:\"
-send  \"$DBPASS\"
-expect \"Re-enter new password:\"
-send \"$DBPASS\"
-expect \"Remove anonymous users?\"
-send \"y\r\"
-expect \"Disallow root login remotely?\"
-send \"y\r\"
-expect \"Remove test database and access to it?\"
-send \"y\r\"
-expect \"Reload privilege tables now?\"
-send \"y\r\"
-expect eof
-")
-systemctl restart mysql
-echo "$SECURE_MYSQL"
-
-error "MySQL ROOT Password set to $DBPASS"
+error "MySQL ROOT Password set to $MySQLPass"
 
 #Update PHP Settings
 sleep 2
