@@ -101,49 +101,49 @@ yum install opensips opensips-cli -y
 systemctl enable opensips.service
 systemctl start opensips.service
 
-#Install OpenSIPs RTPProxy Engine
-verbose "Installing OpenSIPs RTPProxy Engine"
-sleep 2
-useradd rtpproxy
-cd /usr/src
-git clone -b master https://github.com/sippy/rtpproxy.git
-git -c rtpproxy submodule update --init --recursive
-cd rtpproxy
-./configure
-make clean alls
-make install
+# #Install OpenSIPs RTPProxy Engine
+# verbose "Installing OpenSIPs RTPProxy Engine"
+# sleep 2
+# useradd rtpproxy
+# cd /usr/src
+# git clone -b master https://github.com/sippy/rtpproxy.git
+# git -c rtpproxy submodule update --init --recursive
+# cd rtpproxy
+# ./configure
+# make clean alls
+# make install
 
-warning "Adding OpenSIP RTPProxy as a service"
-cat <<EOF > /lib/systemd/system/rtpproxy.service
-[Unit]
-Description=RTPProxy media server
-After=network.target
-Requires=network.target
-[Service]
-Type=simple
-PIDFile=/var/run/rtpproxy/rtpproxy.pid
-Environment='OPTIONS= -f -L 4096 -l 0.0.0.0 -m 10000 -M 20000 -d INFO:LOG_LOCAL5'
-Restart=always
-RestartSec=5
-ExecStartPre=-/bin/mkdir /var/run/rtpproxy
-ExecStartPre=-/bin/chown rtpproxy:rtpproxy /var/run/rtpproxy
-ExecStart=/usr/local/bin/rtpproxy -p /var/run/rtpproxy/rtpproxy.pid -s udp:127.0.0.1:22222 \
- -u rtpproxy:rtpproxy -n udp:127.0.0.1:22223 $OPTIONS
-ExecStop=/usr/bin/pkill -F /var/run/rtpproxy/rtpproxy.pid
-ExecStopPost=-/bin/rm -R /var/run/rtpproxy
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=rtpproxy
-SyslogFacility=local5
-TimeoutStartSec=10
-TimeoutStopSec=10
-[Install]
-WantedBy=multi-user.target
-EOF
+# warning "Adding OpenSIP RTPProxy as a service"
+# cat <<EOF > /lib/systemd/system/rtpproxy.service
+# [Unit]
+# Description=RTPProxy media server
+# After=network.target
+# Requires=network.target
+# [Service]
+# Type=simple
+# PIDFile=/var/run/rtpproxy/rtpproxy.pid
+# Environment='OPTIONS= -f -L 4096 -l 0.0.0.0 -m 10000 -M 20000 -d INFO:LOG_LOCAL5'
+# Restart=always
+# RestartSec=5
+# ExecStartPre=-/bin/mkdir /var/run/rtpproxy
+# ExecStartPre=-/bin/chown rtpproxy:rtpproxy /var/run/rtpproxy
+# ExecStart=/usr/local/bin/rtpproxy -p /var/run/rtpproxy/rtpproxy.pid -s udp:127.0.0.1:22222 \
+#  -u rtpproxy:rtpproxy -n udp:127.0.0.1:22223 $OPTIONS
+# ExecStop=/usr/bin/pkill -F /var/run/rtpproxy/rtpproxy.pid
+# ExecStopPost=-/bin/rm -R /var/run/rtpproxy
+# StandardOutput=syslog
+# StandardError=syslog
+# SyslogIdentifier=rtpproxy
+# SyslogFacility=local5
+# TimeoutStartSec=10
+# TimeoutStopSec=10
+# [Install]
+# WantedBy=multi-user.target
+# EOF
 
-chmod +x /lib/systemd/system/rtpproxy.service 
-systemctl enable rtpproxy.service
-systemctl start rtpproxy.service
+# chmod +x /lib/systemd/system/rtpproxy.service 
+# systemctl enable rtpproxy.service
+# systemctl start rtpproxy.service
 
 
 #MySQL Server & PHP Installation 
@@ -219,6 +219,16 @@ systemctl restart crond.service
 verbose "Configuring OpenSIPs CLI"
 cat << EOF > /etc/opensips/opensips-cli.cfg
 [default]
+database_name=opensips
+database_url=mysql://opensips:$MySQLPass@localhost
+template_uri=mysql://opensips:$MySQLPass@localhost
+database_admin_url=mysql://root:$MySQLPass@localhost
+database_modules=ALL
+database_force_drop=true
+EOF
+
+cat << EOF > ~/.opensips-cli.cfg
+[default]
 log_level: WARNING
 prompt_name: cli
 prompt_intro: Welcome to CLI!
@@ -230,6 +240,8 @@ communication_type: fifo
 fifo_file: /tmp/opensips_fifo
 domain: opensips.org
 EOF
+source ~/.opensips-cli.cfg
+
 opensips-cli -x database create
 #import database schema
 mysql -u root -p$MySQLPass opensips < /var/www/html/opensips-cp/config/db_schema.mysql
