@@ -223,6 +223,8 @@ database_modules=ALL
 database_force_drop=true
 EOF
 opensips-cli -x database create
+#import database schema
+mysql -u root -p$MySQLPass opensips < /var/www/html/opensips-cp/config/db_schema.mysql
 sed -i "s/$config->db_pass = .*/$config->db_pass = \"$MySQLPass\";/g" /var/www/html/opensips-cp/config/db.inc.php
 verbose "Installation has been completed"
 ip=$(hostname -I | awk '{print $1}')
