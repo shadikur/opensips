@@ -179,6 +179,11 @@ mysql -u root -p$MySQLPass -e "UPDATE mysql.user SET Password=PASSWORD('$MySQLPa
 mysql -u root -p$MySQLPass -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', 'localhost.localdomain');"
 mysql -u root -p$MySQLPass -e "DELETE FROM mysql.user WHERE User='';"
 mysql -u root -p$MySQLPass -e "FLUSH PRIVILEGES;"
+#Create opensips user and database
+mysql -u root -p$MySQLPass -e "CREATE USER 'opensips'@'localhost' IDENTIFIED BY '$MySQLPass';"
+mysql -u root -p$MySQLPass -e "CREATE DATABASE opensips DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
+mysql -u root -p$MySQLPass -e "GRANT ALL ON opensips.* TO 'opensips'@'localhost';"
+mysql -u root -p$MySQLPass -e "FLUSH PRIVILEGES;"
 
 sleep 2
 
