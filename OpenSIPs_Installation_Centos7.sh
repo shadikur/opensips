@@ -199,7 +199,11 @@ sed 's#;max_input_vars = .*#max_input_vars = 8000#g' -i /etc/php.ini
 
 verbose "Cloning OpenSIPs GUI interface"
 #Clone GUI files to /var/www/html/ (default Apache directory)
-git clone https://github.com/OpenSIPS/opensips-cp.git /var/www/html/opensips-cp
+#git clone https://github.com/OpenSIPS/opensips-cp.git /var/www/html/opensips-cp
+cd /var/www/html/
+wget https://github.com/OpenSIPS/opensips-cp/archive/8.3.2.zip
+unzip 8.3.2.zip
+mv opensips-cp-8.3.2 opensips-cp
 #Change ownership & permissions
 chown -R apache:apache /var/www/html/opensips-cp
 cd /var/www/html/opensips-cp/
@@ -215,12 +219,16 @@ systemctl restart crond.service
 verbose "Configuring OpenSIPs CLI"
 cat << EOF > /etc/opensips/opensips-cli.cfg
 [default]
-database_name=opensips
-database_url=mysql://opensips:$MySQLPass@localhost
-template_uri=mysql://opensips:$MySQLPass@localhost
-database_admin_url=mysql://root:$MySQLPass@localhost
-database_modules=ALL
-database_force_drop=true
+log_level: WARNING
+prompt_name: cli
+prompt_intro: Welcome to CLI!
+prompt_emptyline_repeat_cmd: False
+history_file: ~/.opensips-cli.history
+history_file_size: 1000
+output_type: pretty-print
+communication_type: fifo
+fifo_file: /tmp/opensips_fifo
+domain: opensips.org
 EOF
 opensips-cli -x database create
 #import database schema
