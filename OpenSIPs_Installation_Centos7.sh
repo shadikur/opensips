@@ -101,6 +101,18 @@ yum install opensips opensips-cli -y
 systemctl enable opensips.service
 systemctl start opensips.service
 
+#Install sngrep
+verbose "Install sngrep"
+sleep 3
+cat <<EOF > /etc/yum.repos.d/sngrep.repo
+[irontec]
+name=Irontec RPMs repository
+baseurl=http://packages.irontec.com/centos/$releasever/$basearch/
+EOF
+rpm --import http://packages.irontec.com/public.key
+yum update -y && yum install sngrep -y
+
+
 # #Install OpenSIPs RTPProxy Engine
 # verbose "Installing OpenSIPs RTPProxy Engine"
 # sleep 2
@@ -199,11 +211,7 @@ sed 's#;max_input_vars = .*#max_input_vars = 8000#g' -i /etc/php.ini
 
 verbose "Cloning OpenSIPs GUI interface"
 #Clone GUI files to /var/www/html/ (default Apache directory)
-#git clone https://github.com/OpenSIPS/opensips-cp.git /var/www/html/opensips-cp
-cd /var/www/html/
-wget https://github.com/OpenSIPS/opensips-cp/archive/8.3.2.zip
-unzip 8.3.2.zip
-mv opensips-cp-8.3.2 opensips-cp
+git clone https://github.com/OpenSIPS/opensips-cp.git /var/www/html/opensips-cp
 #Change ownership & permissions
 chown -R apache:apache /var/www/html/opensips-cp
 cd /var/www/html/opensips-cp/
