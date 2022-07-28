@@ -1,4 +1,4 @@
-# opensips
+# OpenSIPs - v3.2 LTS
 
 # Script Name:
 Complete OpenSIPs installation including GUI management & RTP Proxy
