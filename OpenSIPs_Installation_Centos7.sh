@@ -107,7 +107,7 @@ sleep 3
 cat <<EOF > /etc/yum.repos.d/sngrep.repo
 [irontec]
 name=Irontec RPMs repository
-baseurl=http://packages.irontec.com/centos/$releasever/$basearch/
+baseurl=http://packages.irontec.com/centos/7/x86_64/
 EOF
 rpm --import http://packages.irontec.com/public.key
 yum update -y && yum install sngrep -y
@@ -161,10 +161,14 @@ yum update -y && yum install sngrep -y
 #MySQL Server & PHP Installation 
 verbose "Installing MySQL Server & PHP"
 sleep 3
-#install MariaDB 10.3
-yum install mariadb-server mariadb-devel mariadb-libs mariadb-server-libs -y
-systemctl enable mariadb.service
-systemctl start mariadb.service
+#install MySQL Server
+curl -sSLO https://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
+md5sum mysql80-community-release-el7-5.noarch.rpm
+rpm -ivh mysql80-community-release-el7-5.noarch.rpm
+yum install mysql-server -y
+systemctl enable mysqld.service
+systemctl start mysqld.service
+
 #Add PHP 7.3 Remi repository
 yum install http://rpms.remirepo.net/enterprise/remi-release-7.rpm -y
 #Disable 5.4 and enable 7.3
@@ -190,11 +194,6 @@ mysqladmin -u root password $MySQLPass
 mysql -u root -p$MySQLPass -e "UPDATE mysql.user SET Password=PASSWORD('$MySQLPass') WHERE User='root';"
 mysql -u root -p$MySQLPass -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', 'localhost.localdomain');"
 mysql -u root -p$MySQLPass -e "DELETE FROM mysql.user WHERE User='';"
-mysql -u root -p$MySQLPass -e "FLUSH PRIVILEGES;"
-#Create opensips user and database
-mysql -u root -p$MySQLPass -e "CREATE USER 'opensips'@'localhost' IDENTIFIED BY '$MySQLPass';"
-mysql -u root -p$MySQLPass -e "CREATE DATABASE opensips DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;"
-mysql -u root -p$MySQLPass -e "GRANT ALL ON opensips.* TO 'opensips'@'localhost';"
 mysql -u root -p$MySQLPass -e "FLUSH PRIVILEGES;"
 
 sleep 2
@@ -248,11 +247,11 @@ communication_type: fifo
 fifo_file: /tmp/opensips_fifo
 domain: opensips.org
 EOF
-source ~/.opensips-cli.cfg
+touch ~/.opensips-cli.cfg
 
 opensips-cli -x database create
 #import database schema
-mysql -u root -p$MySQLPass opensips < /var/www/html/opensips-cp/config/db_schema.mysql
+mysql -u root -p$MySQLPass -Dopensips < /var/www/html/opensips-cp/config/db_schema.mysql
 sed -i "s/$config->db_pass = .*/$config->db_pass = \"$MySQLPass\";/g" /var/www/html/opensips-cp/config/db.inc.php
 verbose "Installation has been completed"
 ip=$(hostname -I | awk '{print $1}')
