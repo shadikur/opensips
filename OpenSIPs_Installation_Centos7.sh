@@ -161,11 +161,11 @@ yum update -y && yum install sngrep -y
 #MySQL Server & PHP Installation 
 verbose "Installing MySQL Server & PHP"
 sleep 3
-#install MariaDB 10.1
+#install MariaDB 10.5
 cat <<EOF > /etc/yum.repos.d/MariaDB.repo
 [mariadb]
 name = MariaDB
-baseurl = http://yum.mariadb.org/10.1/centos7-amd64
+baseurl = http://yum.mariadb.org/10.5/centos7-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF
