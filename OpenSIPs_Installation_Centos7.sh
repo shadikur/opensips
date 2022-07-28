@@ -48,7 +48,7 @@ yum install epel-release -y && yum update -y
 verbose "Add dependencies to prepare the environment"
 sleep 3
 yum groupinstall core base "Development Tools" -y
-yum install wget curl git nano vim -y
+yum install wget curl git nano vim expect -y
 
 # #install gcc 4.9.2
 # verbose "Install gcc 4.9.2"
@@ -161,13 +161,17 @@ yum update -y && yum install sngrep -y
 #MySQL Server & PHP Installation 
 verbose "Installing MySQL Server & PHP"
 sleep 3
-#install MySQL Server
-curl -sSLO https://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
-md5sum mysql80-community-release-el7-5.noarch.rpm
-rpm -ivh mysql80-community-release-el7-5.noarch.rpm
-yum install mysql-server -y
-systemctl enable mysqld.service
-systemctl start mysqld.service
+#install MariaDB 10.1
+cat <<EOF > /etc/yum.repos.d/MariaDB.repo
+[mariadb]
+name = MariaDB
+baseurl = http://yum.mariadb.org/10.1/centos7-amd64
+gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+gpgcheck=1
+EOF
+yum install MariaDB-server MariaDB-client -y
+systemctl enable mariadb.service
+systemctl start mariadb.service
 
 #Add PHP 7.3 Remi repository
 yum install http://rpms.remirepo.net/enterprise/remi-release-7.rpm -y
@@ -185,30 +189,13 @@ systemctl start httpd.service
 verbose "Update MySQL password"
 DBPASS=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
 warning "Changing MySQL password to $DBPASS"
-SECURE_MYSQL=$(expect -c "
-set timeout 10
-spawn mysql_secure_installation
-expect \"Enter current password for root (enter for none):\"
-send \"$MYSQL\r\"
-expect \"Change the root password?\"
-send \"y\r\"
-expect \"New password:\"
-send  \"$DBPASS\"
-expect \"Re-enter new password:\"
-send \"$DBPASS\"
-expect \"Remove anonymous users?\"
-send \"y\r\"
-expect \"Disallow root login remotely?\"
-send \"y\r\"
-expect \"Remove test database and access to it?\"
-send \"y\r\"
-expect \"Reload privilege tables now?\"
-send \"y\r\"
-expect eof
-")
-systemctl restart mysql
-echo "$SECURE_MYSQL"
-
+sleep 2
+mysqladmin -u root password $DBPASS
+mysql -u root -p$DBPASS -e "UPDATE mysql.user SET Password=PASSWORD('$DBPASS') WHERE User='root';"
+mysql -u root -p$DBPASS -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', 'localhost.localdomain');"
+mysql -u root -p$DBPASS -e "DELETE FROM mysql.user WHERE User='';"
+mysql -u root -p$DBPASS -e "FLUSH PRIVILEGES;"
+systemctl restart mysqld.service
 error "MySQL ROOT Password set to $DBPASS"
 
 sleep 2
