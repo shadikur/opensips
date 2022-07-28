@@ -49,6 +49,7 @@ verbose "Add dependencies to prepare the environment"
 sleep 3
 yum groupinstall core base "Development Tools" -y
 yum install wget curl git nano vim expect -y
+yum install python36 python36-pip python36-devel gcc mysql-devel python36-mysql python36-sqlalchemy python36-pyOpenSSL -y
 
 # #install gcc 4.9.2
 # verbose "Install gcc 4.9.2"
@@ -224,28 +225,22 @@ systemctl restart crond.service
 
 #OpenSIPs CLI configuration
 verbose "Configuring OpenSIPs CLI"
-cat << EOF > /etc/opensips/opensips-cli.cfg
-[default]
-database_name=opensips
-database_url=mysql://opensips:$DBPASS@localhost
-template_uri=mysql://opensips:$DBPASS@localhost
-database_admin_url=mysql://root:$DBPASS@localhost
-database_modules=ALL
-database_force_drop=true
-EOF
 
 cat << EOF > ~/.opensips-cli.cfg
 [default]
-log_level: WARNING
-prompt_name: cli
-prompt_intro: Welcome to CLI!
-prompt_emptyline_repeat_cmd: False
-history_file: ~/.opensips-cli.history
-history_file_size: 1000
-output_type: pretty-print
-communication_type: fifo
-fifo_file: /tmp/opensips_fifo
-domain: opensips.org
+ log_level: WARNING
+ prompt_name: opensips-cli
+ prompt_intro: Welcome to OpenSIPS at SECUREVOIP
+ prompt_emptyline_repeat_cmd: False
+ history_file: ~/.opensips-cli.history
+ history_file_size: 1000
+ output_type: pretty-print
+ communication_type: fifo
+ fifo_file: /tmp/opensips_fifo
+ database_admin_url: mysql://root:@localhost
+ database_url: mysql://opensips:opensipsrw@localhost
+ database_name: opensips
+ database_modules: ALL
 EOF
 touch ~/.opensips-cli.cfg
 
@@ -261,4 +256,4 @@ verbose "Please keep this information in your record for further configuration"
 verbose "MySQL ROOT Password: $DBPASS"
 verbose	"OpenSIP DB Name: opensips, DB Username: opensips & DB Password: $DBPASS"
 verbose "Monit Username: admin and Password: $MonitPass"
-error "If you face any issue on deployment or in configuration, please feel free to contact to jbansal@guidepoint.com or mrahman@guidepoint.com. Thank you."
+error "If you face any issue on deployment or in configuration, please feel free to contact to Mohammad / Jasdeep. Thank you."
