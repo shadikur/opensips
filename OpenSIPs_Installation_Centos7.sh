@@ -196,7 +196,9 @@ mysql -u root -p$DBPASS -e "UPDATE mysql.user SET Password=PASSWORD('$DBPASS') W
 mysql -u root -p$DBPASS -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', 'localhost.localdomain');"
 mysql -u root -p$DBPASS -e "DELETE FROM mysql.user WHERE User='';"
 mysql -u root -p$DBPASS -e "FLUSH PRIVILEGES;"
-systemctl restart mysqld.service
+
+#restart mariadb
+systemctl restart mariadb.service
 error "MySQL ROOT Password set to $DBPASS"
 
 sleep 2
