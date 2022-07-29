@@ -244,6 +244,7 @@ cat << EOF > ~/.opensips-cli.cfg
  database_url: mysql://opensips:$DBPASS@localhost
  database_name: opensips
  database_modules: ALL
+ database_force_drop=true
 EOF
 touch ~/.opensips-cli.cfg
 
