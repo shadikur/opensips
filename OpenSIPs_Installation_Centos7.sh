@@ -162,11 +162,11 @@ yum update -y && yum install sngrep -y
 #MySQL Server & PHP Installation 
 verbose "Installing MySQL Server & PHP"
 sleep 3
-#install MariaDB 10.5
+#install MariaDB 10.3
 cat <<EOF > /etc/yum.repos.d/MariaDB.repo
 [mariadb]
 name = MariaDB
-baseurl = http://yum.mariadb.org/10.5/centos7-amd64
+baseurl = http://yum.mariadb.org/10.3/centos7-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF
@@ -192,6 +192,7 @@ DBPASS=$(date +%s | sha256sum | base64 | head -c 32 ; echo)
 warning "Changing MySQL password to $DBPASS"
 sleep 2
 mysqladmin -u root password $DBPASS
+mysql -u root -p$DBPASS -e "GRANT ALL PRIVILEGES ON mysql.user TO 'root'@'localhost' WITH GRANT OPTION;"
 mysql -u root -p$DBPASS -e "UPDATE mysql.user SET Password=PASSWORD('$DBPASS') WHERE User='root';"
 mysql -u root -p$DBPASS -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', 'localhost.localdomain');"
 mysql -u root -p$DBPASS -e "DELETE FROM mysql.user WHERE User='';"
