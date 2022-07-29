@@ -240,8 +240,8 @@ cat << EOF > ~/.opensips-cli.cfg
  output_type: pretty-print
  communication_type: fifo
  fifo_file: /tmp/opensips_fifo
- database_admin_url: mysql://root:@localhost
- database_url: mysql://opensips:opensipsrw@localhost
+ database_admin_url: mysql://root:$DBPASS@localhost
+ database_url: mysql://opensips:$DBPASS@localhost
  database_name: opensips
  database_modules: ALL
 EOF
