@@ -111,7 +111,7 @@ sleep 3
 cd /usr/src/
 yum install git openssl-devel libxslt lynx -y
 git clone --recursive https://github.com/OpenSIPS/opensips.git -b 3.2 opensips-3.2
-yum remove libmicrohttpd libmicrohttpd-devel
+yum remove libmicrohttpd libmicrohttpd-devel -y
 wget https://cbs.centos.org/kojifiles/packages/libmicrohttpd/0.9.59/2.el7/x86_64/libmicrohttpd-0.9.59-2.el7.x86_64.rpm --no-check-certificate
 wget https://cbs.centos.org/kojifiles/packages/libmicrohttpd/0.9.59/2.el7/x86_64/libmicrohttpd-devel-0.9.59-2.el7.x86_64.rpm --no-check-certificate
 yum install  libmicrohttpd-0.9.59-2.el7.x86_64.rpm libmicrohttpd-devel-0.9.59-2.el7.x86_64.rpm -y
