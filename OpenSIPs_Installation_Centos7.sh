@@ -105,6 +105,29 @@ yum install opensips-* --skip-broken -y
 systemctl enable opensips.service
 systemctl start opensips.service
 
+#Update EPOLL feature in OpenSIPs
+verbose "Update EPOLL feature in OpenSIPs"
+sleep 3
+cd /usr/src/
+yum install git openssl-devel libxslt lynx -y
+git clone --recursive https://github.com/OpenSIPS/opensips.git -b 3.2 opensips-3.2
+yum remove libmicrohttpd libmicrohttpd-devel
+wget https://cbs.centos.org/kojifiles/packages/libmicrohttpd/0.9.59/2.el7/x86_64/libmicrohttpd-0.9.59-2.el7.x86_64.rpm --no-check-certificate
+wget https://cbs.centos.org/kojifiles/packages/libmicrohttpd/0.9.59/2.el7/x86_64/libmicrohttpd-devel-0.9.59-2.el7.x86_64.rpm --no-check-certificate
+yum install  libmicrohttpd-0.9.59-2.el7.x86_64.rpm libmicrohttpd-devel-0.9.59-2.el7.x86_64.rpm -y
+
+cd opensips-3.2
+make modules=modules/httpd modules
+make modules=modules/mi_http modules
+make modules=modules/prometheus modules
+
+#copy your compiled modules to opensips modules directory, then restart opensips.
+cp modules/httpd/httpd.so /usr/lib64/opensips/modules
+cp modules/mi_http/mi_http.so /usr/lib64/opensips/modules
+cp modules/prometheus/prometheus.so /usr/lib64/opensips/modules
+
+systemctl restart opensips.service
+
 #Install sngrep
 verbose "Install sngrep"
 sleep 3
