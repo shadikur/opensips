@@ -99,6 +99,9 @@ sleep 3
 warning "Starting installation..."
 yum install https://yum.opensips.org/3.2/releases/el/7/x86_64/opensips-yum-releases-3.2-6.el7.noarch.rpm -y
 yum install opensips opensips-cli -y
+#Install Opensips Additional Packages
+verbose "Install Opensips Additional Packages"
+yum install opensips-* --skip-broken -y 
 systemctl enable opensips.service
 systemctl start opensips.service
 
