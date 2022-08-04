@@ -41,7 +41,8 @@ yum update -y && yum upgrade -y
 #Install epel-release and update
 verbose "Install epel-release and update"
 sleep 2
-yum install epel-release -y && yum update -y
+yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -y
+yum update -y
 
 
 #Add dependencies
@@ -99,6 +100,7 @@ sleep 3
 warning "Starting installation..."
 yum install https://yum.opensips.org/3.2/releases/el/7/x86_64/opensips-yum-releases-3.2-6.el7.noarch.rpm -y
 yum install opensips opensips-cli -y
+
 #Install Opensips Additional Packages
 verbose "Install Opensips Additional Packages"
 yum install opensips-* --skip-broken -y 
