@@ -41,6 +41,8 @@ yum update -y && yum upgrade -y
 #Install epel-release and update
 verbose "Install epel-release and update"
 sleep 2
+yum remove epel-release -y
+yum update -y
 yum install https://download-ib01.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -y
 yum update -y
 
